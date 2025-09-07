@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎮 Game Center</title>
+  <style>
+    :root{
+      --bg:#0f172a; /* slate-900 */
+      --card:#111827ee; /* gray-900 */
+      --muted:#94a3b8; /* slate-400 */
+      --text:#e5e7eb; /* gray-200 */
+      --accent:#06b6d4; /* cyan-500 */
+      --accent-2:#22c55e; /* green-500 */
+      --danger:#ef4444; /* red-500 */
+      --warning:#f59e0b; /* amber-500 */
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text); background:radial-gradient(1200px 800px at 80% -10%, #0ea5e980 0%, transparent 60%),
+                         radial-gradient(900px 600px at -20% 120%, #22c55e40 0%, transparent 60%),
+                         var(--bg);
+    }
+    .container{max-width:900px; margin:0 auto; padding:24px}
+    .card{
+      background:var(--card); border:1px solid #1f2937; border-radius:24px; padding:32px;
+      box-shadow:0 10px 30px #0008; backdrop-filter: blur(8px);
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    h1{margin:0 0 12px; font-size:28px}
+    .sub{color:var(--muted); margin-top:0}
+    .row{display:flex; gap:16px; flex-wrap:wrap}
+    .hidden{display:none !important}
+    .center{display:flex; align-items:center; justify-content:center}
+
+    input, select, button{font:inherit}
+    input[type="text"], input[type="password"], input[type="number"], select{
+      width:100%; padding:12px 14px; border-radius:14px; border:1px solid #334155;
+      background:#0b1220; color:var(--text); outline:none; transition: border .2s;
+    }
+    input:focus, select:focus{border-color:var(--accent)}
+    button{
+      border:none; padding:12px 16px; border-radius:14px; cursor:pointer; color:#001015;
+      background:linear-gradient(135deg, var(--accent), #3b82f6); font-weight:700;
+      transition: transform .06s ease, box-shadow .2s ease; box-shadow: 0 6px 20px #06b6d460;
+    }
+    button.secondary{background:#0b1220; color:var(--text); border:1px solid #334155; box-shadow:none}
+    button.ghost{background:transparent; color:var(--text); border:1px dashed #334155}
+    button:active{transform: translateY(1px)}
+
+    .toolbar{display:flex; gap:10px; align-items:center; justify-content:space-between; margin-bottom:12px}
+    .badges{display:flex; gap:8px; flex-wrap:wrap}
+    .badge{padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid #334155; color:var(--muted)}
+
+    .grid{display:grid; grid-template-columns:repeat(12,1fr); gap:16px}
+    @media (max-width: 720px){.grid{grid-template-columns:repeat(6,1fr)}}
+    .col-6{grid-column:span 6}
+    .col-12{grid-column:span 12}
+
+    .panel{background:#0b1220; border:1px solid #1f2937; border-radius:16px; padding:16px}
+    .title{font-weight:700; letter-spacing:.3px}
+    .muted{color:var(--muted)}
+    .log{height:150px; overflow:auto; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; background:#050812; border-radius:12px; padding:10px; border:1px solid #1f2937}
+    .spacer{height:8px}
+
+    .menu{display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; max-width: 1000px; margin: 0 auto;}
+    @media (max-width: 900px) {.menu{grid-template-columns: repeat(2, 1fr);}}
+    @media (max-width: 600px) {.menu{grid-template-columns: 1fr;}}
+    .tile{background:#0b1220; border:1px solid #1f2937; border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:12px; min-height: 120px;}
+    .tile h3{margin:0; font-size: 1.1rem;}
+    .tile p{margin:0; color:var(--muted); font-size:0.9rem; flex-grow:1}
+    .tile button{width:100%; padding:8px; border-radius:8px; background:var(--accent); color:white; border:none; cursor:pointer; transition:opacity 0.2s; margin-top: auto;}
+    .tile button:hover{opacity:0.9}
+
+    .lives{display:flex; gap:6px}
+    .heart{width:18px; height:18px; border-radius:4px; background:var(--danger)}
+    .progress{width:100%; height:12px; background:#0b1220; border:1px solid #1f2937; border-radius:999px; overflow:hidden}
+    .progress > div{height:100%; background:linear-gradient(90deg, var(--accent), #3b82f6)}
+
+    .footer{margin-top:16px; display:flex; gap:10px; justify-content:flex-end}
+    
+    /* Hangman image */
+    .hangman-image {
+      display: none;
+      max-width: 200px;
+      margin: 0 auto 20px;
+      filter: drop-shadow(0 0 10px rgba(255,0,0,0.5));
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- LOGIN -->
+    <div id="screen-login" class="card">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <img src="hariri.png.png" alt="hariri " style="width: 200px; height: 80px; margin-bottom: 10px;">
+        <h1>🎮 Game Center Login</h1>
+        <p class="sub">Enter your username and password to start playing</p>
+      </div>
+      <div class="grid">
+        <div class="col-6">
+          <label>Username</label>
+          <input id="username" type="text" placeholder="e.g. player1" />
+        </div>
+        <div class="col-6">
+          <label>Password</label>
+          <input id="password" type="password" placeholder="••••••" />
+        </div>
+        <div class="col-12 footer">
+          <button id="loginBtn" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; width: 100%;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            <span>log in</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOME / MENU -->
+    <div id="screen-home" class="card hidden">
+      <div class="toolbar">
+        <div>
+          <h1 style="margin:0">👋 Hello, <span id="playerName">Player</span></h1>
+          <p class="sub" id="levelLabel">Level: Easy</p>
+
+      
+        </div>
+        <div class="badges">
+          <span class="badge">Wins: <span id="wins">0</span></span>
+          <span class="badge">Total Played: <span id="played">0</span></span>
+          <button class="secondary" id="changeLevel">Change Level</button>
+          <button class="ghost" id="logout">Logout</button>
+        </div>
+        
+      </div>
+ <h4><b>Mohamad Abo okdeh </b></h4>
+      <div class="menu">
+       
+        <div class="tile">
+          <h3>Hangman</h3>
+          <p>Guess the hidden word. 6 lives.</p>
+          <button onclick="startGame('hangman')">Play</button>
+        </div>
+        <div class="tile">
+          <h3>Snakes & Ladders</h3>
+          <p>Roll to reach the goal. Watch for snakes!</p>
+          <button onclick="startGame('snl')">Play</button>
+        </div>
+        <div class="tile">
+          <h3>Rock–Paper–Scissors</h3>
+          <p>Beat the computer across several rounds.</p>
+          <button onclick="startGame('rps')">Play</button>
+        </div>
+        <div class="tile">
+          <h3>Guess the Number</h3>
+          <p>Find the secret number within attempts.</p>
+          <button onclick="startGame('gtn')">Play</button>
+        </div>
+        <div class="tile">
+          <h3>Math Quiz</h3>
+          <p>Quick arithmetic questions by difficulty.</p>
+          <button onclick="startGame('math')">Play</button>
+        </div>
+        <div class="tile">
+          <h3>Crossword Puzzle</h3>
+          <p>Guess words across and down using clues.</p>
+              <button onclick="startGame('crossword')">Play</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="screen-game" class="card hidden">
+      <div class="toolbar">
+        <div>
+          <h1 id="gameTitle">Game</h1>
+          <p class="sub" id="gameSubtitle">Have fun!</p>
+        </div>
+        <div class="badges">
+          <span class="badge">Level: <span id="badgeLevel">Easy</span></span>
+          <span class="badge">Wins: <span id="wins2">0</span></span>
+          <button class="secondary" onclick="backToMenu()">Back to Menu</button>
+        </div>
+      </div>
+
+      <div id="gameArea" class="grid"></div>
+
+      <div class="footer">
+        <button id="resetGame" class="ghost hidden">Restart</button>
+        <button id="finishGame" class="secondary hidden" onclick="backToMenu()">Finish</button>
+      </div>
+    </div>
+
+    <!-- LEVEL PICKER MODAL (simple) -->
+    <div id="levelModal" class="hidden" style="position:fixed; inset:0; background:#0008;">
+      <div class="center" style="height:100%">
+        <div class="card" style="width:min(480px, 92vw)">
+          <h2 style="margin-top:0">Choose Level</h2>
+          <div class="row">
+            <button class="secondary" onclick="setLevel('Easy')">Easy</button>
+            <button class="secondary" onclick="setLevel('Medium')">Medium</button>
+            <button class="secondary" onclick="setLevel('Hard')">Hard</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- STATE ----------
+    const state = {
+      user: null,
+      level: 'Easy',
+      wins: 0,
+      played: 0
+    };
+
+    const $ = sel => document.querySelector(sel);
+    const show = (id) => document.querySelectorAll('#screen-login,#screen-home,#screen-game')
+      .forEach(el => el.classList.toggle('hidden', el.id !== id));
+
+    // ---------- LOGIN ----------
+    $('#loginBtn').addEventListener('click', () => {
+      const u = $('#username').value.trim();
+      const p = $('#password').value.trim();
+      if(!u || !p){
+        alert('Please enter username and password.');
+        return;
+      }
+      state.user = u;
+      $('#playerName').textContent = u;
+      updateStats();
+      show('screen-home');
+    });
+
+    $('#logout').addEventListener('click', () => {
+      state.user = null; state.wins = 0; state.played = 0; state.level = 'Easy';
+      $('#username').value = 'harir'; $('#password').value='123';
+      show('screen-login');
+    });
+
+    function updateStats(){
+      $('#wins').textContent = state.wins;
+      $('#played').textContent = state.played;
+      $('#wins2').textContent = state.wins;
+      $('#levelLabel').textContent = 'Level: ' + state.level;
+      $('#badgeLevel').textContent = state.level;
+    }
+
+    $('#changeLevel').addEventListener('click', () => {
+      $('#levelModal').classList.remove('hidden');
+    });
+    function setLevel(lv){ state.level = lv; updateStats(); $('#levelModal').classList.add('hidden'); }
+    window.setLevel = setLevel;
+
+    // ---------- NAV ----------
+    function startGame(key){
+      state.current = key;
+      $('#resetGame').classList.add('hidden');
+      $('#finishGame').classList.add('hidden');
+      $('#gameArea').innerHTML = '';
+      if(key==='hangman') initHangman();
+      if(key==='snl') initSNL();
+      if(key==='rps') initRPS();
+      if(key==='gtn') initGTN();
+      if(key==='math') initMath();
+      if(key==='crossword') initCrossword();
+      show('screen-game');
+    }
+    window.startGame = startGame;
+
+    function backToMenu(){ show('screen-home'); }
+    window.backToMenu = backToMenu;
+
+    // ---------- HELPERS ----------
+    function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min }
+    function sample(arr){ return arr[Math.floor(Math.random()*arr.length)] }
+
+    function endGame(win){
+      state.played++;
+      if(win) state.wins++;
+      updateStats();
+      $('#finishGame').classList.remove('hidden');
+      $('#resetGame').classList.remove('hidden');
+    }
+
+    $('#resetGame').addEventListener('click', () => startGame(state.current));
+
+    // ---------- GAME 1: HANGMAN ----------
+    function initHangman(){
+      $('#gameTitle').textContent = 'Hangman';
+      $('#gameSubtitle').textContent = 'Guess the word before the hangman is complete';
+
+      const words = {
+        Easy: ['CAT', 'DOG', 'SUN', 'HAT', 'PEN', 'CUP', 'KEY', 'BOX', 'ANT', 'EGG'],
+        Medium: ['APPLE', 'HOUSE', 'WATER', 'HAPPY', 'MUSIC', 'BEACH', 'DANCE', 'SMILE', 'CLOUD', 'DREAM'],
+        Hard: ['ELEPHANT', 'MOUNTAIN', 'ADVENTURE', 'BEAUTIFUL', 'CHOCOLATE', 'DISCOVERY', 'FRIENDSHIP', 'HAPPINESS', 'KNOWLEDGE', 'WONDERFUL']
+      };
+      
+      const word = sample(words[state.level]);
+      const guessed = Array(word.length).fill('_');
+      let wrongGuesses = 0;
+      const maxWrongGuesses = 6;
+      const usedLetters = new Set();
+      
+      // Hangman drawing stages
+      const hangmanStages = [
+        // Initial empty gallows
+        '  +---+\n       |   |\n           |\n           |\n           |\n           |\n     ========',
+        // Head
+        '  +---+\n       |   |\n       O   |\n           |\n           |\n           |\n     ========',
+        // Head and body
+        '  +---+\n       |   |\n       O   |\n       |   |\n           |\n           |\n     ========',
+        // Head, body, and one arm
+        '  +---+\n       |   |\n       O   |\n      /|   |\n           |\n           |\n     ========',
+        // Head, body, and both arms
+        '  +---+\n       |   |\n       O   |\n      /|\\  |\n           |\n           |\n     ========',
+        // Head, body, both arms, and one leg
+        '  +---+\n       |   |\n       O   |\n      /|\\  |\n      /    |\n           |\n     ========',
+        // Complete hangman (game over)
+        '  +---+\n       |   |\n       O   |\n      /|\\  |\n      / \\  |\n           |\n     ========'
+      ];
+
+      const area = $('#gameArea');
+      area.innerHTML = `
+        <div class="col-12 panel" style="text-align: center;">
+          <pre id="hangmanDisplay" style="font-family: monospace; white-space: pre; font-size: 1.2em; line-height: 1.2; min-height: 160px; margin: 0 0 20px 0;">${hangmanStages[0]}</pre>
+          
+          <div id="display" style="font-size: 2em; letter-spacing: 10px; margin: 20px 0; font-family: 'Courier New', monospace;">
+            ${guessed.join(' ')}
+          </div>
+          
+          <div class="keyboard" id="keyboard" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin: 20px 0;">
+            ${'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(letter => 
+              `<button class="key" data-letter="${letter}" style="width: 36px; height: 36px; font-size: 1em; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                ${letter}
+              </button>`
+            ).join('')}
+          </div>
+          
+          <div class="log" id="hlog" style="min-height: 60px; padding: 10px; background: #0b1220; border-radius: 8px; margin: 10px 0;"></div>
+          
+          <div style="margin-top: 20px;">
+            <button id="newGameBtn" style="padding: 8px 16px; background: #2196F3; color: white; border: none; border-radius: 20px; margin: 0 5px; cursor: pointer; font-weight: bold;">
+              New Word
+            </button>
+          </div>
+          
+          <div style="margin-top: 15px; color: #666; font-size: 0.9em;">
+            Level: ${state.level} | Wrong guesses: <span id="wrongCount">0</span>/${maxWrongGuesses}
+          </div>
+        </div>`;
+
+      const hlog = $('#hlog');
+      const hangmanDisplay = $('#hangmanDisplay');
+      
+      function updateDisplay() { 
+        $('#display').textContent = guessed.join(' ');
+        $('#wrongCount').textContent = wrongGuesses;
+        hangmanDisplay.textContent = hangmanStages[Math.min(wrongGuesses, hangmanStages.length - 1)];
+      }
+
+      // Handle keyboard button clicks
+      document.querySelectorAll('.key').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const letter = e.target.getAttribute('data-letter');
+          if (!letter || usedLetters.has(letter)) return;
+          
+          usedLetters.add(letter);
+          e.target.style.background = '#666';
+          e.target.disabled = true;
+          
+          if (word.includes(letter)) {
+            // Correct guess
+            for (let i = 0; i < word.length; i++) {
+              if (word[i] === letter) {
+                guessed[i] = letter;
+              }
+            }
+            hlog.innerHTML = `✅ Correct! '${letter}' is in the word.<br>${hlog.innerHTML}`;
+            
+            // Check for win
+            if (!guessed.includes('_')) {
+              hlog.innerHTML = `<div style="color: #4CAF50; font-weight: bold; text-align: center; padding: 10px; background: rgba(76, 175, 80, 0.1); border-radius: 8px; margin: 10px 0;">
+                🎉 You won! The word was: ${word}
+              </div>`;
+              endGame(true);
+              disableAllKeys();
+            }
+          } else {
+            // Wrong guess
+            wrongGuesses++;
+            hlog.innerHTML = `❌ Wrong! '${letter}' is not in the word.<br>${hlog.innerHTML}`;
+            
+            // Check for loss
+            if (wrongGuesses >= maxWrongGuesses) {
+              hlog.innerHTML = `<div style="color: #f44336; font-weight: bold; text-align: center; padding: 10px; background: rgba(244, 67, 54, 0.1); border-radius: 8px; margin: 10px 0;">
+                💀 Game Over! The word was: ${word}
+              </div>`;
+              endGame(false);
+              disableAllKeys();
+            }
+          }
+          
+          updateDisplay();
+        });
+      });
+      
+      // Handle keyboard input
+      document.addEventListener('keydown', (e) => {
+        const key = e.key.toUpperCase();
+        if (key.length === 1 && /[A-Z]/.test(key)) {
+          const button = document.querySelector(`.key[data-letter="${key}"]`);
+          if (button && !button.disabled) {
+            button.click();
+          }
+        }
+      });
+      
+      // New game button
+      document.getElementById('newGameBtn').addEventListener('click', () => {
+        initHangman();
+      });
+      
+      function disableAllKeys() {
+        document.querySelectorAll('.key').forEach(btn => {
+          btn.disabled = true;
+        });
+      }
+    }
+
+    // ---------- GAME 2: SNAKES & LADDERS ----------
+    function initSNL() {
+      $('#gameTitle').textContent = 'Snakes & Ladders';
+      $('#gameSubtitle').textContent = 'Roll the dice and reach the goal first!';
+      
+      // Game configuration
+      const goal = state.level === 'Easy' ? 30 : state.level === 'Medium' ? 50 : 70;
+      const boardSize = Math.ceil(Math.sqrt(goal + 1));
+      const snakes = {14:5, 25:10, 35:20, 48:18, 55:7, 62:44, 78:41, 85:63, 92:71};
+      const ladders = {3:22, 6:17, 9:31, 19:38, 24:33, 40:59, 51:67, 61:79, 73:86};
+      let pos = 0;
+      let playerTurn = 1; // 1 or 2 for two players
+      const players = [
+        { id: 1, pos: 0, color: '#FF5252', emoji: '😊' }, // Player 1
+        { id: 2, pos: 0, color: '#4CAF50', emoji: '😎' }  // Player 2
+      ];
+
+      // Create the game board
+      const area = $('#gameArea');
+      area.innerHTML = `
+        <div class="col-12 panel">
+          <div class="game-header">
+            <div class="player-info">
+              <div class="player-tag" style="background: ${players[0].color}">
+                <span>${players[0].emoji} Player 1</span>
+                <div class="player-token" id="player1-token" style="background: ${players[0].color}"></div>
+              </div>
+              <div class="player-tag" style="background: ${players[1].color}">
+                <span>${players[1].emoji} Player 2</span>
+                <div class="player-token" id="player2-token" style="background: ${players[1].color}"></div>
+              </div>
+            </div>
+            <button id="roll" class="roll-btn">🎲 Roll Dice</button>
+            <div class="current-player" id="currentPlayer">${players[0].emoji} Player 1's Turn</div>
+          </div>
+          
+          <div class="snakes-ladders-board" id="board">
+            ${createBoard(goal, boardSize, snakes, ladders, players)}
+          </div>
+          
+          <div class="game-log" id="slog"></div>
+          
+          <style>
+            .game-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 15px;
+              flex-wrap: wrap;
+              gap: 10px;
+            }
+            
+            .player-info {
+              display: flex;
+              gap: 10px;
+              flex-wrap: wrap;
+            }
+            
+            .player-tag {
+              padding: 8px 15px;
+              border-radius: 20px;
+              color: white;
+              font-weight: bold;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            }
+            
+            .player-token {
+              width: 20px;
+              height: 20px;
+              border-radius: 50%;
+              border: 2px solid white;
+              display: inline-block;
+              margin-left: 5px;
+            }
+            
+            .roll-btn {
+              background: #2196F3;
+              color: white;
+              border: none;
+              padding: 10px 20px;
+              border-radius: 20px;
+              font-size: 1.1em;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              font-weight: bold;
+              transition: transform 0.1s;
+            }
+            
+            .roll-btn:active {
+              transform: scale(0.95);
+            }
+            
+            .current-player {
+              background: #FFC107;
+              color: #000;
+              padding: 8px 15px;
+              border-radius: 20px;
+              font-weight: bold;
+              text-align: center;
+              flex: 1;
+              max-width: 200px;
+            }
+            
+            .snakes-ladders-board {
+              display: grid;
+              grid-template-columns: repeat(${Math.ceil(Math.sqrt(goal + 1))}, 1fr);
+              gap: 2px;
+              background: #333;
+              border: 3px solid #333;
+              border-radius: 8px;
+              overflow: hidden;
+              margin: 20px 0;
+            }
+            
+            .cell {
+              aspect-ratio: 1;
+              background: white;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: bold;
+              position: relative;
+              font-size: 0.8em;
+            }
+            
+            .cell.snake {
+              background: #FFCDD2;
+            }
+            
+            .cell.ladder {
+              background: #C8E6C9;
+            }
+            
+            .cell.goal {
+              background: #4CAF50;
+              color: white;
+              font-size: 1.2em;
+            }
+            
+            .cell-number {
+              position: absolute;
+              top: 2px;
+              left: 2px;
+              font-size: 0.7em;
+              color: #666;
+            }
+            
+            .snake-icon {
+              color: #D32F2F;
+              font-size: 1.2em;
+            }
+            
+            .ladder-icon {
+              color: #2E7D32;
+              font-size: 1.2em;
+            }
+            
+            .player-tokens {
+              position: absolute;
+              bottom: 2px;
+              display: flex;
+              gap: 2px;
+              width: 100%;
+              justify-content: center;
+            }
+            
+            .game-log {
+              background: #f5f5f5;
+              border-radius: 8px;
+              padding: 10px;
+              max-height: 150px;
+              overflow-y: auto;
+              font-size: 0.9em;
+              border: 1px solid #ddd;
+            }
+            
+            .log-entry {
+              margin: 5px 0;
+              padding: 5px;
+              border-radius: 4px;
+            }
+            
+            .log-entry.player1 { background: #FFEBEE; }
+            .log-entry.player2 { background: #E8F5E9; }
+            .log-entry.snake { color: #D32F2F; }
+            .log-entry.ladder { color: #2E7D32; }
+          </style>
+        </div>
+      `;
+
+      // Initialize game state
+      const slog = $('#slog');
+      const boardElement = $('#board');
+      
+      // Add player tokens to the starting position
+      updatePlayerPositions();
+
+      // Helper function to create the board HTML
+      function createBoard(goal, size, snakes, ladders, players) {
+        let boardHTML = '';
+        let cellNumber = goal;
+        
+        for (let row = 0; row < size; row++) {
+          // Alternate direction for each row (snake pattern)
+          const isReversed = row % 2 === 1;
+          const cols = isReversed ? Array.from({length: size}, (_, i) => i) : Array.from({length: size}, (_, i) => size - 1 - i);
+          
+          for (const col of cols) {
+            const position = cellNumber--;
+            if (position < 1) continue;
+            
+            const isSnake = snakes[position] !== undefined;
+            const isLadder = ladders[position] !== undefined;
+            const isGoal = position === goal;
+            
+            let cellClass = 'cell';
+            if (isSnake) cellClass += ' snake';
+            if (isLadder) cellClass += ' ladder';
+            if (isGoal) cellClass += ' goal';
+            
+            // Get player tokens for this cell
+            const playersHere = players.filter(p => p.pos === position);
+            const playerTokens = playersHere.map(p => 
+              `<div class="player-token" style="background: ${p.color}; width: 12px; height: 12px;"></div>`
+            ).join('');
+            
+            boardHTML += `
+              <div class="${cellClass}" data-pos="${position}">
+                <span class="cell-number">${position}</span>
+                ${isSnake ? '<div class="snake-icon">🐍</div>' : ''}
+                ${isLadder ? '<div class="ladder-icon">🪜</div>' : ''}
+                ${isGoal ? '🏁' : ''}
+                ${playersHere.length > 0 ? 
+                  `<div class="player-tokens">${playerTokens}</div>` : ''}
+              </div>
+            `;
+          }
+        }
+        
+        return boardHTML;
+      }
+      
+      // Update player positions on the board
+      function updatePlayerPositions() {
+        // Remove all player tokens
+        document.querySelectorAll('.player-token').forEach(el => el.remove());
+        
+        // Add player tokens to their current positions
+        players.forEach(player => {
+          if (player.pos > 0) {
+            const cell = document.querySelector(`.cell[data-pos="${player.pos}"]`);
+            if (cell) {
+              const tokensDiv = cell.querySelector('.player-tokens') || (() => {
+                const div = document.createElement('div');
+                div.className = 'player-tokens';
+                cell.appendChild(div);
+                return div;
+              })();
+              
+              const token = document.createElement('div');
+              token.className = 'player-token';
+              token.style.background = player.color;
+              token.style.width = '12px';
+              token.style.height = '12px';
+              tokensDiv.appendChild(token);
+            }
+          }
+        });
+      }
+      
+      // Log game message
+      function log(message, type = '') {
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${type}`;
+        entry.innerHTML = message;
+        slog.appendChild(entry);
+        slog.scrollTop = slog.scrollHeight;
+      }
+      
+      // Roll the dice
+      $('#roll').addEventListener('click', () => {
+        const currentPlayer = players[playerTurn - 1];
+        
+        if (currentPlayer.pos >= goal) {
+          log(`Player ${playerTurn} has already won!`, `player${playerTurn}`);
+          return;
+        }
+        
+        const roll = rand(1, 6);
+        log(`🎲 <b>Player ${playerTurn}</b> rolled a ${roll}`, `player${playerTurn}`);
+        
+        // Move player
+        const newPos = Math.min(currentPlayer.pos + roll, goal);
+        currentPlayer.pos = newPos;
+        
+        // Check for snakes and ladders
+        if (snakes[newPos]) {
+          log(`🐍 <b>Player ${playerTurn}</b> got bitten by a snake! Sliding down to ${snakes[newPos]}`, 'snake');
+          currentPlayer.pos = snakes[newPos];
+        } else if (ladders[newPos]) {
+          log(`🪜 <b>Player ${playerTurn}</b> found a ladder! Climbing up to ${ladders[newPos]}`, 'ladder');
+          currentPlayer.pos = ladders[newPos];
+        }
+        
+        // Update display
+        updatePlayerPositions();
+        
+        // Check for win
+        if (currentPlayer.pos >= goal) {
+          log(`🏆 <b>Player ${playerTurn} wins!</b>`, `player${playerTurn}`);
+          endGame(true);
+          return;
+        }
+        
+        // Switch players
+        playerTurn = playerTurn === 1 ? 2 : 1;
+        document.getElementById('currentPlayer').innerHTML = 
+          `${playerTurn === 1 ? players[0].emoji : players[1].emoji} Player ${playerTurn}'s Turn`;
+      });
+    }
+
+    // ---------- GAME 3: RPS ----------
+    function initRPS(){
+      $('#gameTitle').textContent = 'Rock – Paper – Scissors';
+      const rounds = state.level==='Easy'?3: state.level==='Medium'?5:7;
+      const options = ['rock','paper','scissors'];
+      let played=0, score=0;
+
+      const area = $('#gameArea');
+      area.innerHTML = `
+        <div class="col-12 panel">
+          <div class="title">Rounds: ${rounds}</div>
+          <div class="spacer"></div>
+          <div class="row">
+            <button class="secondary" data-pick="rock">🪨 Rock</button>
+            <button class="secondary" data-pick="paper">📄 Paper</button>
+            <button class="secondary" data-pick="scissors">✂️ Scissors</button>
+          </div>
+          <div class="spacer"></div>
+          <div class="log" id="rlog"></div>
+        </div>`;
+
+      const rlog = $('#rlog');
+      area.querySelectorAll('[data-pick]').forEach(btn => btn.addEventListener('click', () => {
+        if(played>=rounds) return;
+        const user = btn.dataset.pick;
+        const comp = sample(options);
+        let msg = `You: ${user} | Computer: ${comp} → `;
+        if(user===comp){ msg += 'Tie'; }
+        else if((user==='rock'&&comp==='scissors')||(user==='scissors'&&comp==='paper')||(user==='paper'&&comp==='rock')){ msg += 'You win'; score++; }
+        else { msg += 'Computer wins'; }
+        played++;
+        rlog.innerHTML += msg+"<br>";
+        if(played>=rounds){
+          rlog.innerHTML += `<b>Final: You won ${score} / ${rounds}</b>`;
+          endGame(score > Math.floor(rounds/2));
+        }
+      }));
+    }
+
+    // ---------- GAME 4: GUESS THE NUMBER ----------
+    function initGTN(){
+      $('#gameTitle').textContent = 'Guess the Number';
+      const max = state.level==='Easy'?10: state.level==='Medium'?50:100;
+      const attemptsMax = state.level==='Easy'?5: state.level==='Medium'?7:10;
+      const secret = rand(1,max);
+      let attempts = attemptsMax;
+
+      const area = $('#gameArea');
+      area.innerHTML = `
+        <div class="col-12 panel">
+          <div class="title">Guess between 1 and ${max}</div>
+          <div class="spacer"></div>
+          <div class="row">
+            <input id="gnum" type="number" min="1" max="${max}" style="max-width:180px">
+            <button id="gbtn">Guess</button>
+          </div>
+          <div class="spacer"></div>
+          <div class="badges"><span class="badge">Attempts left: <span id="left">${attempts}</span></span></div>
+          <div class="spacer"></div>
+          <div class="log" id="glog"></div>
+        </div>`;
+
+      const glog = $('#glog');
+      function setLeft(){ $('#left').textContent = attempts; }
+      $('#gbtn').addEventListener('click', () => {
+        if(attempts<=0) return;
+        const val = parseInt($('#gnum').value,10);
+        if(!val || val<1 || val>max) return alert('Enter a valid number');
+        if(val===secret){ glog.innerHTML += `<b>Correct! You win!</b>`; endGame(true); attempts=0; setLeft(); return; }
+        attempts--; setLeft();
+        glog.innerHTML += (val<secret? 'Too low.' : 'Too high.')+"<br>";
+        if(attempts<=0){ glog.innerHTML += `<b>You lost! The number was: ${secret}</b>`; endGame(false); }
+      });
+    }
+
+    // ---------- GAME 5: MATH QUIZ ----------
+    function initMath(){
+      $('#gameTitle').textContent = 'Math Quiz';
+      const ops = { Easy: ['+'], Medium: ['+','-'], Hard:['+','-','*'] };
+      const rounds = state.level==='Easy'?3: state.level==='Medium'?5:7;
+      let score = 0, played = 0;
+
+      const area = $('#gameArea');
+      area.innerHTML = `
+        <div class="col-12 panel">
+          <div class="title">Answer the questions</div>
+          <div class="spacer"></div>
+          <div id="qbox" style="font-size:26px; font-weight:800">&nbsp;</div>
+          <div class="spacer"></div>
+          <div class="row">
+            <input id="ans" type="number" style="max-width:200px">
+            <button id="submitAns">Submit</button>
+          </div>
+          <div class="spacer"></div>
+          <div class="badges"><span class="badge">Score: <span id="mscore">0</span> / ${rounds}</span></div>
+          <div class="spacer"></div>
+          <div class="log" id="mlog"></div>
+        </div>`;
+
+      const mlog = $('#mlog');
+      const mscore = $('#mscore');
+      const qbox = $('#qbox');
+
+      function nextQ(){
+        const op = sample(ops[state.level]);
+        const a = state.level==='Easy'? rand(1,10) : rand(10,50);
+        const b = state.level==='Easy'? rand(1,10) : rand(10,50);
+        let correct;
+        if(op==='+' ) correct = a + b;
+        if(op==='-') correct = a - b;
+        if(op==='*') correct = a * b;
+        qbox.dataset.correct = String(correct);
+        qbox.textContent = `${a} ${op} ${b} = ?`;
+      }
+
+      nextQ();
+      $('#submitAns').addEventListener('click', () => {
+        const val = Number($('#ans').value);
+        const correct = Number(qbox.dataset.correct);
+        if(Number.isNaN(val)){ alert('Enter a number'); return; }
+        if(val===correct){ score++; mlog.innerHTML += '✔️ Correct!<br>'; }
+        else { mlog.innerHTML += `❌ Wrong! Answer was ${correct}<br>`; }
+        mscore.textContent = score; played++;
+        if(played>=rounds){ mlog.innerHTML += `<b>You scored ${score} / ${rounds}</b>`; endGame(score > Math.floor(rounds/2)); }
+        else { $('#ans').value=''; nextQ(); }
+      });
+    }
+   // ---------- GAME 6: CROSSWORD ----------
+function initCrossword(){
+  $('#gameTitle').textContent = 'Crossword Puzzle';
+  $('#gameSubtitle').textContent = 'Solve the crossword with clues.';
+
+  const clues = {
+    1: {q: 'Show Disapproval', a: 'FROWN'},
+    2: {q: 'Lumps Of Clay', a: 'FISTS'},
+    3: {q: 'It Has A Tread', a: 'STAIR' },
+    4: {q: 'Filibuster, In A Way', a: 'ORATE'},
+    5: {q: 'Cocktail Glass Parts', a: 'STEMS'},
+    6: {q: 'Accepted Standards', a: 'NORMS'}
+  };
+
+  const solution = [
+    ['F','R','O','W','N'],
+    ['I','#','R','#','O'],
+    ['S','T','A','I','R'],
+    ['T','#','T','#','M'],
+    ['S','T','E','M','S']
+  ];
+  
+  // Add number indicators for clues
+  const cellNumbers = {
+    '0-0': 1, // FROWN
+    '0-2': 4, // ORATE
+    '2-0': 2, // FISTS
+    '2-2': 3, // STAIR
+    '2-4': 5, // STEMS
+    '4-0': 6  // NORMS
+  };
+
+  let grid = Array.from({length:5},()=>Array(5).fill(''));
+  grid[1][1]='#'; grid[1][3]='#';
+  grid[3][1]='#'; grid[3][3]='#';
+
+  const area = $('#gameArea');
+  area.innerHTML = `
+    <div style="background: #f0f4f8; min-height: 100vh; padding: 20px 0; display: flex; justify-content: center; align-items: center;">
+      <div style="width: 100%; max-width: 700px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+        <h2 style="text-align: center; margin: 0 0 30px 0; color: #1a365d; font-size: 32px; font-weight: 700;">Crossword Puzzle</h2>
+        
+        <div style="background: white; border: 2px solid #e2e8f0; border-radius: 10px; padding: 25px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+          <div id="clueDisplay" style="
+            background: #ebf8ff; 
+            padding: 18px; 
+            border-radius: 8px; 
+            margin: 0 0 25px 0; 
+            font-size: 20px;
+            font-weight: 600;
+            color: #2b6cb0;
+            border-left: 5px solid #4299e1;
+            text-align: center;
+            min-height: 40px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+          ">
+            👈 Click any cell to see its clue
+          </div>
+        
+        <div style="display: flex; justify-content: center; margin: 0 0 30px 0;">
+          <div id="cwgrid" style="
+            display: grid; 
+            grid-template-columns: repeat(5, 60px); 
+            gap: 3px; 
+            background: #2d3748; 
+            padding: 10px; 
+            border-radius: 10px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+            border: 2px solid #4a5568;
+          "></div>
+        </div>
+      <div style="background: white; border-radius: 10px; padding: 25px; margin-top: 25px; border: 2px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <input id="cwNum" 
+                   type="number" 
+                   min="1" 
+                   max="6" 
+                   placeholder="#" 
+                   style="
+                     width: 70px; 
+                     padding: 14px; 
+                     border: 2px solid #cbd5e0; 
+                     border-radius: 8px;
+                     font-size: 18px;
+                     font-weight: 600;
+                     text-align: center;
+                     outline: none;
+                     transition: all 0.2s;
+                     &:focus {
+                       border-color: #4299e1;
+                       box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.3);
+                     }">
+            <input id="cwGuess" 
+                   type="text" 
+                   maxlength="5" 
+                   placeholder="Type your guess here" 
+                   style="
+                     flex: 1;
+                     padding: 14px 18px; 
+                     border: 2px solid #cbd5e0; 
+                     border-radius: 8px;
+                     font-size: 18px;
+                     font-weight: 500;
+                     text-transform: uppercase;
+                     letter-spacing: 3px;
+                     outline: none;
+                     transition: all 0.2s;
+                     &:focus {
+                       border-color: #4299e1;
+                       box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.3);
+                     }">
+            <button id="cwSubmit" 
+                    style="
+                      background: #4299e1; 
+                      color: white; 
+                      border: none; 
+                      padding: 0 30px; 
+                      height: 54px;
+                      border-radius: 8px; 
+                      cursor: pointer;
+                      font-weight: 600;
+                      font-size: 18px;
+                      transition: all 0.2s;
+                      white-space: nowrap;
+                      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                      &:hover {
+                        background: #3182ce;
+                        transform: translateY(-1px);
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+                      }
+                      &:active {
+                        transform: translateY(0);
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                      }">
+              Submit
+            </button>
+          </div>
+          
+          <div id="cwlog" 
+               style="
+                 background: #f8fafc; 
+                 padding: 20px; 
+                 border-radius: 8px; 
+                 min-height: 80px;
+                 font-size: 16px;
+                 line-height: 1.7;
+                 color: #2d3748;
+                 border: 1px solid #e2e8f0;
+                 box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
+                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+            <div style="color: #718096; font-style: italic; font-size: 15px;">
+              Your game progress will appear here...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  // Show initial instruction
+  $('#clueDisplay').textContent = 'Click on any cell to see its clue';
+
+  // Define word positions and their corresponding clue numbers
+  const wordPositions = {
+    1: { type: 'across', row: 0, col: 0, clue: 'Show Disapproval', answer: 'FROWN' },
+    2: { type: 'down', row: 0, col: 0, clue: 'Lumps Of Clay', answer: 'FISTS' },
+    3: { type: 'down', row: 0, col: 4, clue: 'It Has A Tread', answer: 'STAIR' },
+    4: { type: 'across', row: 0, col: 2, clue: 'Filibuster, In A Way', answer: 'ORATE' },
+    5: { type: 'down', row: 0, col: 4, clue: 'Cocktail Glass Parts', answer: 'STEMS' },
+    6: { type: 'across', row: 4, col: 0, clue: 'Accepted Standards', answer: 'NORMS' }
+  };
+
+  const cwgrid = $('#cwgrid');
+  for(let i=0;i<5;i++){
+    for(let j=0;j<5;j++){
+      const cell = document.createElement('div');
+      cell.style.width = '60px';
+      cell.style.height = '60px';
+      cell.style.display = 'flex';
+      cell.style.alignItems = 'center';
+      cell.style.justifyContent = 'center';
+      cell.style.border = 'none';
+      cell.style.fontWeight = 'bold';
+      cell.style.fontSize = '28px';
+      cell.style.position = 'relative';
+      cell.style.cursor = 'pointer';
+      cell.style.transition = 'all 0.2s ease';
+      cell.style.borderRadius = '6px';
+      cell.style.fontFamily = 'Arial, sans-serif';
+      
+      // Add hover effect
+      cell.addEventListener('mouseover', () => {
+        if (grid[i][j] !== '#') {
+          cell.style.transform = 'translateY(-2px)';
+          cell.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+          cell.style.zIndex = '1';
+        }
+      });
+      
+      cell.addEventListener('mouseout', () => {
+        cell.style.transform = '';
+        cell.style.boxShadow = '';
+        cell.style.zIndex = '';
+      });
+      
+      // Add cell number indicator
+      const cellKey = `${i}-${j}`;
+      if (cellNumbers[cellKey]) {
+        const numSpan = document.createElement('span');
+        numSpan.textContent = cellNumbers[cellKey];
+        numSpan.style.position = 'absolute';
+        numSpan.style.top = '2px';
+        numSpan.style.left = '2px';
+        numSpan.style.fontSize = '10px';
+        cell.appendChild(numSpan);
+        
+        // Add click handler to show clue
+        cell.addEventListener('click', () => {
+          const clueNum = cellNumbers[cellKey];
+          const wordInfo = wordPositions[clueNum];
+          if (wordInfo) {
+            $('#cwNum').value = clueNum;
+            $('#clueDisplay').textContent = `Clue ${clueNum} (${wordInfo.type}): ${wordInfo.clue}`;
+            $('#clueDisplay').style.display = 'block';
+          }
+        });
+      }
+      
+      if(grid[i][j]==='#'){ 
+        cell.style.background='#333'; 
+      } else { 
+        cell.style.background='#0b1220'; 
+        cell.style.color = '#fff';
+        
+        // Add click handler for empty cells
+        cell.addEventListener('click', () => {
+          // Find the first word this cell belongs to
+          for (const [num, pos] of Object.entries(cellNumbers)) {
+            if (num === cellKey) {
+              const wordInfo = wordPositions[pos];
+              if (wordInfo) {
+                $('#cwNum').value = pos;
+                $('#clueDisplay').textContent = `Clue ${pos} (${wordInfo.type}): ${wordInfo.clue}`;
+                $('#clueDisplay').style.display = 'block';
+                break;
+              }
+            }
+          }
+        });
+      }
+      cwgrid.appendChild(cell);
+    }
+  }
+
+  function render(){
+    [...cwgrid.children].forEach((cell,idx)=>{
+      const i=Math.floor(idx/5), j=idx%5;
+      if(grid[i][j]==='#'){ 
+        cell.textContent='';
+        cell.style.background='#2d3748';
+        cell.style.boxShadow = 'inset 0 0 0 2px #1a202c';
+      }
+      else { 
+        cell.textContent = grid[i][j] || ''; 
+        if (grid[i][j]) {
+          cell.style.background = '#38a169';
+          cell.style.color = 'white';
+          cell.style.fontWeight = 'bold';
+          cell.style.boxShadow = '0 3px 6px rgba(0,0,0,0.1)';
+        } else {
+          cell.style.background = 'white';
+          cell.style.color = '#2d3748';
+          cell.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
+        }
+      }
+    });
+  }
+  render();
+
+  function checkWin(){
+    for(let i=0;i<5;i++){
+      for(let j=0;j<5;j++){
+        if(solution[i][j]!=='#' && grid[i][j]!==solution[i][j]) return false;
+      }
+    }
+    return true;
+  }
+
+  $('#cwSubmit').addEventListener('click',()=>{
+    const num = parseInt($('#cwNum').value, 10);
+    const guess = $('#cwGuess').value.toUpperCase();
+    
+    if(!num || !wordPositions[num] || guess.length !== 5) { 
+      alert('Please select a cell first and enter a 5-letter guess'); 
+      return; 
+    }
+
+    const wordInfo = wordPositions[num];
+    if(guess === wordInfo.answer) {
+      $('#cwlog').innerHTML += `✔️ Correct for clue ${num}!<br>`;
+      
+      // Fill in the grid with the correct answer
+      if(wordInfo.type === 'across') {
+        for(let k = 0; k < 5; k++) {
+          grid[wordInfo.row][wordInfo.col + k] = guess[k];
+        }
+      } else { // down
+        for(let k = 0; k < 5; k++) {
+          grid[wordInfo.row + k][wordInfo.col] = guess[k];
+        }
+      }
+    } else {
+      $('#cwlog').innerHTML += `❌ Incorrect guess for clue ${num}. Try again!<br>`;
+    }
+
+    render();
+    if(checkWin()){ $('#cwlog').innerHTML+=`<b>🎉 You solved the crossword!</b>`; endGame(true); }
+  });
+}
+    window.initCrossword = initCrossword;
+  </script>
+</body>
+</html>
